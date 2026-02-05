@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { addDays, format } from "date-fns"
+import { format } from "date-fns"
 import { Calendar as CalendarIcon } from "lucide-react"
 import { DateRange } from "react-day-picker"
 
@@ -28,7 +28,6 @@ export function DatePickerWithRange({
   const [isCalendarOpen, setIsCalendarOpen] = React.useState(false)
   const [tempDate, setTempDate] = React.useState<DateRange | undefined>(date)
 
-  // Sync tempDate when popover opens
   React.useEffect(() => {
     if (isCalendarOpen) {
       setTempDate(date)
@@ -42,7 +41,7 @@ export function DatePickerWithRange({
           <Button
             id="date"
             className={cn(
-              "w-[260px] justify-start text-left font-normal bg-white/5 border border-white/10 hover:bg-white/10 text-white backdrop-blur-md shadow-[0_0_10px_rgba(0,0,0,0.2)] h-10 px-3",
+              "w-65 justify-start text-left font-normal bg-white/5 border border-white/10 hover:bg-white/10 text-white backdrop-blur-md shadow-[0_0_10px_rgba(0,0,0,0.2)] h-10 px-3",
               !date && "text-muted-foreground"
             )}
           >
@@ -61,7 +60,7 @@ export function DatePickerWithRange({
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="end">
+        <PopoverContent className="w-auto p-0 border-white/10 bg-black/90 backdrop-blur-xl text-white" align="end">
           <Calendar
             initialFocus
             mode="range"
@@ -69,12 +68,16 @@ export function DatePickerWithRange({
             selected={tempDate}
             onSelect={(selectedRange) => {
               setTempDate(selectedRange)
+              
+              // CRITICAL: Only update the parent (triggering the API) 
+              // if both From and To are selected. 
               if (selectedRange?.from && selectedRange?.to) {
                 setDate(selectedRange)
                 setIsCalendarOpen(false)
               }
             }}
             numberOfMonths={2}
+            className="text-white"
           />
         </PopoverContent>
       </Popover>
