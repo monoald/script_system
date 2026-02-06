@@ -3,14 +3,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isSameDay, isAfter, isBefore, isWithinInterval } from 'date-fns';
-
-interface DateRange {
-  from: Date;
-  to?: Date;
-}
+import { DateRange } from "react-day-picker";
 
 interface DatePickerWithRangeProps {
-  date: DateRange;
+  date: DateRange | undefined;
   setDate: (range: DateRange | undefined) => void;
 }
 
@@ -30,9 +26,10 @@ const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 export function DatePickerWithRange({ date, setDate }: DatePickerWithRangeProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [baseMonth, setBaseMonth] = useState(() => startOfMonth(date.from));
-  const [selectionStart, setSelectionStart] = useState<Date | null>(date.from);
-  const [selectionEnd, setSelectionEnd] = useState<Date | null>(date.to ?? null);
+  const [baseMonth, setBaseMonth] = useState(() => startOfMonth(date?.from ?? new Date()));
+  const [selectionStart, setSelectionStart] = useState<Date | null>(date?.from ?? null);
+  const [selectionEnd, setSelectionEnd] = useState<Date | null>(date?.to ?? null);
+  
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
   const [picking, setPicking] = useState<'start' | 'end'>('start');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -48,9 +45,12 @@ export function DatePickerWithRange({ date, setDate }: DatePickerWithRangeProps)
   }, []);
 
   useEffect(() => {
-    setSelectionStart(date.from);
-    setSelectionEnd(date.to ?? null);
-  }, [date.from, date.to]);
+    setSelectionStart(date?.from ?? null);
+    setSelectionEnd(date?.to ?? null);
+    if (date?.from) {
+      setBaseMonth(startOfMonth(date.from));
+    }
+  }, [date]);
 
   const secondMonth = addMonths(baseMonth, 1);
 
@@ -169,7 +169,7 @@ export function DatePickerWithRange({ date, setDate }: DatePickerWithRangeProps)
     ? selectionEnd
       ? `${format(selectionStart, 'MMM d, yyyy')} – ${format(selectionEnd, 'MMM d, yyyy')}`
       : `${format(selectionStart, 'MMM d, yyyy')} – …`
-    : 'Select date range';
+    : 'All Time';
 
   return (
     <div ref={containerRef} className="relative">
@@ -247,6 +247,8 @@ export function DatePickerWithRange({ date, setDate }: DatePickerWithRangeProps)
                   setSelectionStart(null);
                   setSelectionEnd(null);
                   setPicking('start');
+                  setDate(undefined);
+                  setIsOpen(false);
                 }}
                 className="px-3 py-1.5 text-xs font-medium text-gray-500 rounded-lg hover:bg-white/6 hover:text-gray-300 transition-colors"
               >

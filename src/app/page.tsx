@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { Loader2, LayoutDashboard, AlertCircle } from "lucide-react"; // Added Icons
+import { Loader2, LayoutDashboard, AlertCircle, CalendarX } from "lucide-react"; 
 import KPICards from "@/components/dashboard/KPICards";
 import InfluencerTable from "@/components/dashboard/InfluencerTable";
 import ScriptTable from "@/components/dashboard/ScriptTable";
@@ -11,13 +11,11 @@ import { useDashboardStore } from "@/store/useDashboardStore";
 import { Platform } from "@/types";
 import { cn } from "@/lib/utils";
 import { subDays } from "date-fns";
+import { DateRange } from "react-day-picker";
 
 export default function Dashboard() {
   const [platform, setPlatform] = useState<Platform | 'all'>('tiktok');
-  const [dateRange, setDateRange] = useState<{ from: Date; to?: Date }>({
-    from: subDays(new Date(), 30),
-    to: new Date()
-  });
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   const { 
     influencers: allInfluencers, 
@@ -61,17 +59,23 @@ export default function Dashboard() {
             ))}
           </div>
 
-          <DatePickerWithRange 
-            date={dateRange}
-            setDate={(range) => {
-              if (range?.from) {
-                setDateRange({ 
-                  from: range.from, 
-                  to: range.to 
-                });
-              }
-            }}
-          />
+          <div className="flex items-center gap-2">
+            <DatePickerWithRange 
+              date={dateRange}
+              setDate={(range) => {
+                setDateRange(range);
+              }}
+            />
+            {dateRange && (
+               <button 
+                 onClick={() => setDateRange(undefined)}
+                 className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                 title="Clear Date (All Time)"
+               >
+                 <CalendarX size={18} />
+               </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -87,7 +91,7 @@ export default function Dashboard() {
           
           <div className="flex flex-col items-center space-y-2">
             <span className="text-sm font-medium text-transparent bg-clip-text bg-linear-to-r from-cyan-200 to-purple-200 animate-pulse">
-              Syncing live data...
+              {dateRange ? 'Syncing live data...' : 'Fetching all-time history...'}
             </span>
           </div>
         </div>
@@ -108,7 +112,8 @@ export default function Dashboard() {
           <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <h2 className="text-xl font-bold text-white mb-6 flex items-center">
               <span className="w-1 h-6 bg-cyan-400 rounded-full mr-3 shadow-[0_0_10px_rgba(34,211,238,0.8)]"></span>
-              Performance Overview
+              Performance Overview 
+              {!dateRange && <span className="ml-2 text-xs text-gray-500 bg-white/5 px-2 py-1 rounded-full">(All Time)</span>}
             </h2>
             <KPICards data={currentKPI} />
           </section>

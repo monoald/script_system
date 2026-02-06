@@ -4,6 +4,7 @@ import {
   getFilteredScripts 
 } from "@/lib/mock-data";
 import { Platform } from "@/types";
+import { DateRange } from "react-day-picker"; // Assuming you use react-day-picker types, or define locally
 
 export interface Influencer {
   account: string;
@@ -28,7 +29,8 @@ interface DashboardState {
   isLoading: boolean;
   error: string | null;
 
-  fetchDashboardData: (dateRange: { from: Date; to?: Date }) => Promise<void>;
+  // Updated to allow undefined (All Time)
+  fetchDashboardData: (dateRange?: DateRange) => Promise<void>;
 }
 
 const INITIAL_KPI_STATE = {
@@ -48,16 +50,26 @@ export const useDashboardStore = create<DashboardState>((set) => ({
     set({ isLoading: true, error: null });
 
     try {
+      // LOGIC FIX: If dateRange is undefined, send nulls to backend
+      const payload = dateRange?.from 
+        ? { from: dateRange.from, to: dateRange.to ?? dateRange.from }
+        : { from: null, to: null };
+
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dateRange),
+        body: JSON.stringify(payload),
       };
+
+      // Mock Data Handler: If all time, we simulate a very old start date for the mock filter
+      const mockFromDate = dateRange?.from ?? new Date('2020-01-01');
+      const mockToDate = dateRange?.to ?? new Date();
 
       const [tiktokKpiResponse, tiktokInfluencersResponse, scriptsData] = await Promise.all([
         fetch("https://n8n.aldazosa-n8n.xyz/webhook/tiktok/analytics", requestOptions),
         fetch("https://n8n.aldazosa-n8n.xyz/webhook/tiktok/best-performers", requestOptions),
-        fetchMockData(getFilteredScripts(dateRange.from, dateRange.to || dateRange.from))
+        // Pass fallback dates to mock function if dateRange is undefined
+        fetchMockData(getFilteredScripts(mockFromDate, mockToDate))
       ]);
 
       if (!tiktokKpiResponse.ok || !tiktokInfluencersResponse.ok) {
