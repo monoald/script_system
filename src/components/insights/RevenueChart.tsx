@@ -83,7 +83,7 @@ export default function RevenueChart({ data }: RevenueChartProps) {
             }}
             itemStyle={{ color: '#F3F4F6' }}
             labelFormatter={(label) => format(parseISO(label), 'MMM d, yyyy')}
-            formatter={(value: number) => [`$${value.toLocaleString()}`, '']}
+            // formatter={(value: number) => [`$${value.toLocaleString()}`, '']}
           />
           <Legend wrapperStyle={{ paddingTop: '20px' }} />
           <Area 
